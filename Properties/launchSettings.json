@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SteamDeckCreamApiInstaller": {
+      "commandName": "Project",
+      "commandLineArgs": "280160 --mock"
+    }
+  }
+}
