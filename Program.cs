@@ -22,30 +22,34 @@ namespace SteamDeckCreamApiInstaller
                 name: "--only-update",
                 getDefaultValue: () => false,
                 description: "Only update the cream api config.");
-            var ignoreOld = new Option<bool>(
-                name: "--ignore-old",
+            var force = new Option<bool>(
+                name: "--force",
                 getDefaultValue: () => false,
-                description: "Ignore old _o.dll files. Do this after you've validated your steam files.");
+                description: "Force the copy process and ignore old _o.dll files. Do this after you've validated your steam files.");
 
             var rootCommand = new RootCommand("Installs cream api")
             {
                 appid,
                 mock,
                 onlyUpdate,
-                ignoreOld,
+                force,
             };
             rootCommand.SetHandler(Handler,
-                appid, mock, onlyUpdate, ignoreOld);
+                appid, mock, onlyUpdate, force);
 
             return rootCommand.Invoke(args);
         }
 
-        public static void Handler(int appid, bool mock, bool onlyUpdate, bool ignoreOld)
+        public static void Handler(int appid, bool mock, bool onlyUpdate, bool force)
         {
             Console.WriteLine($"AppID: {appid}");
 
             if (mock)
                 Console.WriteLine("Running in mock mode");
+            if (onlyUpdate)
+                Console.WriteLine("Only updating cream_api.ini");
+            if (force)
+                Console.WriteLine("Force mode");
 
             // Read config
             var config = Config.GetConfig(ConfigPath, mock);
@@ -114,9 +118,11 @@ namespace SteamDeckCreamApiInstaller
                     continue;
                 }
 
-                if (!ignoreOld && Path.Exists(oName))
+                // If an _o.dll file exists, we probably already replaced it and the current dll is probably a creamApi one.
+                // Continue if we force it though (ie if we verified the game)
+                if (!force && Path.Exists(oName))
                 {
-                    Console.WriteLine($"Skipping cause {oName} exists");
+                    Console.WriteLine($"Skipping cause {oName} exists.");
                     continue;
                 }
 
