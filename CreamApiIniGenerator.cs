@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Xml.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json.Nodes;
 using System.Text.Json;
 
@@ -104,12 +92,25 @@ disableuserinterface = false
         public static readonly string AppIDTemplate = "{APPID}";
 
         public static readonly string DlcURL = "https://store.steampowered.com/api/dlcforapp/?appid=";
+        public static readonly string SteamDBDlcUrl = $"https://steamdb.info/app/{AppIDTemplate}/dlc/";
         public static readonly string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0";
         //TODO: either find a way to get hidden dlcs
         // or make unlockall optional
         // or get them from steamdb (impossible)
 
         public static string GetIni(int appid)
+        {
+            //TODO: TryGetDLCDataFromSteamDB?
+            var dlcs = GetDLCDataFromSteam(appid);
+            Console.WriteLine();
+            var ret = ini
+                .Replace(AppIDTemplate, appid.ToString())
+                .Replace(DLCTemplate, dlcs + "\n");
+            
+            return ret;
+        }
+
+        public static string GetDLCDataFromSteam(int appid)
         {
             var http = new HttpClient();
             http.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
@@ -128,12 +129,7 @@ disableuserinterface = false
                 Console.WriteLine($"{dlc["name"]} ({dlc["id"]})");
                 dlcList.Add($"{dlc["id"]} = {dlc["name"]}");
             }
-            Console.WriteLine();
-            var ret = ini
-                .Replace(AppIDTemplate, appid.ToString())
-                .Replace(DLCTemplate, string.Join("\n", dlcList) + "\n");
-            
-            return ret;
+            return string.Join("\n", dlcList);
         }
     }
 }
